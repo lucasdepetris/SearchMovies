@@ -3,8 +3,7 @@ import PropTypes from 'prop-types'
 import {ButtonBackToHome} from '../components/ButtonBackToHome'
 import axios from 'axios';
 
-const CancelToken = axios.CancelToken;
-const source = CancelToken.source();
+var reqCancelRequest = axios.CancelToken.source();
 const API_KEY = '5e3a14e4'
 
 export default class Detail extends Component{
@@ -51,7 +50,7 @@ export default class Detail extends Component{
     }, 5000);*/
 
     axios.get(`http://www.omdbapi.com/?apikey=${API_KEY}&i=${id}`, {
-      cancelToken: source.token
+      cancelToken: reqCancelRequest.token
     })
     .then(response => {
       console.log(response)
@@ -68,13 +67,15 @@ export default class Detail extends Component{
       } else {
         // handle error
         console.log(thrown)
+        this.setState({movieExist:false,isLoading:false})
       }
-      this.setState({movieExist:false,isLoading:false})
+      
     });
   }
 
   componentDidMount(){
     console.log('componentDidMount')
+    reqCancelRequest = axios.CancelToken.source();
     console.log(this.props)
     const {id} = this.props.match.params
     this._fetchMovie({id})
@@ -84,7 +85,8 @@ export default class Detail extends Component{
     console.log('componentWillUnmount')
     //clearInterval(this.state.intervalProgressBar)
     // cancel the request (the message parameter is optional)
-    source.cancel('Operation canceled by the user pepe.');
+    reqCancelRequest.cancel('Operation canceled by the user.');
+    reqCancelRequest = null
   }
 
   componentDidCatch (error, errorInfo) {
