@@ -1,7 +1,10 @@
 import React , {Component} from 'react'
 import PropTypes from 'prop-types'
 import {ButtonBackToHome} from '../components/ButtonBackToHome'
+import axios from 'axios';
 
+const CancelToken = axios.CancelToken;
+const source = CancelToken.source();
 const API_KEY = '5e3a14e4'
 
 export default class Detail extends Component{
@@ -23,6 +26,7 @@ export default class Detail extends Component{
   }
 
   _fetchMovie({id}){
+    /*
     let intervalBar = setInterval(() => {
       this.setState({progressBar:this.state.progressBar+10})
      }, 1000); 
@@ -44,8 +48,29 @@ export default class Detail extends Component{
         console.log(error);
         this.setState({movieExist:false,isLoading:false})
       })
-    }, 5000);
-    
+    }, 5000);*/
+
+    axios.get(`http://www.omdbapi.com/?apikey=${API_KEY}&i=${id}`, {
+      cancelToken: source.token
+    })
+    .then(response => {
+      console.log(response)
+      //const {imdbID} = movie
+      //console.log(movie.imdbID)
+      if(response.data.imdbID){
+        this.setState({movie:response.data,movieExist:true})
+      }
+      this.setState({isLoading:false})
+    })
+    .catch(thrown => {
+      if (axios.isCancel(thrown)) {
+        console.log('Request canceled', thrown.message);
+      } else {
+        // handle error
+        console.log(thrown)
+      }
+      this.setState({movieExist:false,isLoading:false})
+    });
   }
 
   componentDidMount(){
@@ -57,7 +82,9 @@ export default class Detail extends Component{
 
   componentWillUnmount(){
     console.log('componentWillUnmount')
-    clearInterval(this.state.intervalProgressBar)
+    //clearInterval(this.state.intervalProgressBar)
+    // cancel the request (the message parameter is optional)
+    source.cancel('Operation canceled by the user pepe.');
   }
 
   componentDidCatch (error, errorInfo) {
