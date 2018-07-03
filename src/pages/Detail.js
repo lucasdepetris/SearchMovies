@@ -15,39 +15,81 @@ export default class Detail extends Component{
   }
 
   state = {
-    movie : {}
+    movie : {},
+    movieExist:false,
+    isLoading:true,
+    progressBar:15,
+    intervalProgressBar: () => {}
   }
 
   _fetchMovie({id}){
-    fetch(`http://www.omdbapi.com/?apikey=${API_KEY}&i=${id}`)
+    let intervalBar = setInterval(() => {
+      this.setState({progressBar:this.state.progressBar+10})
+     }, 1000); 
+    this.setState({intervalProgressBar:intervalBar})
+    setTimeout(() => {
+      //Put All Your Code Here, Which You Want To Execute After Some Delay Time.
+      fetch(`http://www.omdbapi.com/?apikey=${API_KEY}&i=${id}`)
       .then(res => res.json())
       .then(movie => {
         console.log({movie})
-        this.setState({movie})
+        //const {imdbID} = movie
+        //console.log(movie.imdbID)
+        if(movie.imdbID){
+          this.setState({movie,movieExist:true})
+        }
+        this.setState({isLoading:false})
       })
+      .catch(function(error) {
+        console.log(error);
+        this.setState({movieExist:false,isLoading:false})
+      })
+    }, 5000);
+    
   }
 
   componentDidMount(){
+    console.log('componentDidMount')
     console.log(this.props)
     const {id} = this.props.match.params
     this._fetchMovie({id})
+  }
+
+  componentWillUnmount(){
+    console.log('componentWillUnmount')
+    clearInterval(this.state.intervalProgressBar)
+  }
+
+  componentDidCatch (error, errorInfo) {
+    console.log('componentDidCatch')
+    console.log({ error, errorInfo })
   }
 
   render(){
     const {Title, Poster, Actors, Metascore, Plot} =
     this.state.movie
 
+    if(this.state.isLoading){
+      return <progress className="progress is-primary" value={this.state.progressBar} max="100">30%</progress>
+    }
+
     return(
       <div>
           <ButtonBackToHome />
-          <h1>{Title}</h1>
-          <img
-            src = {Poster}
-            alt = {Title}
-          />
-          <h3>{Actors}</h3>
-          <span>{Metascore}</span>
-          <p>{Plot}</p>
+          {this.state.movieExist
+           ? <div>
+             <h1>{Title}</h1>
+             <img
+              src = {Poster}
+              alt = {Title}
+             />
+             <h3>{Actors}</h3>
+             <span>{Metascore}</span>
+             <p>{Plot}</p>
+             </div>
+           : <span className='button is-info'>No se ha encontrado el detalle de la pelicula..</span>
+           }
+          
       </div>
     )
   }
