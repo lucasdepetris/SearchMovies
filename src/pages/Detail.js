@@ -48,7 +48,11 @@ export default class Detail extends Component{
         this.setState({movieExist:false,isLoading:false})
       })
     }, 5000);*/
-
+    let intervalBar = setInterval(() => {
+      this.setState({progressBar:this.state.progressBar+10})
+     }, 1000); 
+    this.setState({intervalProgressBar:intervalBar})
+    
     axios.get(`http://www.omdbapi.com/?apikey=${API_KEY}&i=${id}`, {
       cancelToken: reqCancelRequest.token
     })
